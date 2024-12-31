@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selamat Tahun Baru 2025</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    .glow {
+      text-shadow: 0 0 15px #4f46e5,
+      0 0 25px #4f46e5,
+      0 0 35px #4f46e5;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 15px #4f46e5,
+        0 0 25px #4f46e5,
+        0 0 35px #4f46e5;
+      }
+      to {
+        text-shadow: 0 0 20px #818cf8,
+        0 0 30px #818cf8,
+        0 0 40px #818cf8;
+      }
+    }
+
+    .flip {
+      position: relative;
+      display: inline-block;
+      perspective: 400px;
+    }
+
+    .flip-content {
+      display: inline-block;
+      transform-origin: 50% 50%;
+      animation: flip 0.6s ease-out;
+    }
+
+    @keyframes flip {
+      0% {
+        transform: rotateX(0deg);
+      }
+      100% {
+        transform: rotateX(360deg);
+      }
+    }
+
+    #yearContainer {
+      display: inline-block;
+    }
+
+    .number {
+      display: inline-block;
+      width: 0.6em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center">
+  <canvas id="kembangApi"></canvas>
+
+  <div class="content text-center px-4">
+    <div class="mb-8">
+      <div id="yearContainer" class="text-6xl md:text-9xl font-bold text-white">
+        <span class="number">2</span>
+        <span class="number">0</span>
+        <span class="number">2</span>
+        <span class="number">4</span>
+      </div>
+    </div>
+
+    <div class="text-2xl md:text-4xl text-white font-semibold mb-8">
+      <span id="typed"></span>
+    </div>
+
+    <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+      Mari sambut tahun baru dengan harapan dan semangat baru. Biarkan setiap detik menjadi kesempatan untuk menciptakan kenangan indah.
+    </p>
+    <!-- Tambahkan footer untuk copyright -->
+    <footer class="text-gray-500 text-sm mt-8">
+      &copy; <span id="currentYear"></span> Wahyu Sudrajad
+    </footer>
+  </div>
+
+  <script>
+    const sound = new Howl( {
+      src: ['suara-kembang-api.mp3'],
+      volume: 0.5
+    });
+
+    document.body.addEventListener('click', () => {
+      if (Howler.ctx.state === 'suspended') {
+        Howler.ctx.resume();
+      }
+    }, { once: true });
+
+    function flipNumber(element, newNumber) {
+      element.innerHTML = `<span class="flip-content">${newNumber}</span>`;
+    }
+
+    function updateYear() {
+      const numbers = document.querySelectorAll('.number');
+
+      setTimeout(() => flipNumber(numbers[3], '5'), 0);
+
+      setTimeout(() => {
+        const yearContainer = document.getElementById('yearContainer');
+        yearContainer.classList.add('glow');
+      }, 600);
+    }
+
+    setTimeout(updateYear, 3000);
+
+    const canvas = document.getElementById('kembangApi');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    class Firework {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height;
+        this.sx = Math.random() * 3 - 1.5;
+        this.sy = Math.random() * -12 - 8;
+        this.size = 3;
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        this.particles = [];
+        this.timer = 0;
+        this.explosion = false;
+      }
+
+      update() {
+        if (!this.explosion) {
+          this.x += this.sx;
+          this.y += this.sy;
+          this.sy += 0.2;
+
+          if (this.sy >= -3) {
+            this.explode();
+          }
+        }
+
+        if (this.explosion) {
+          for (let i = 0; i < this.particles.length; i++) {
+            this.particles[i].x += this.particles[i].sx;
+            this.particles[i].y += this.particles[i].sy;
+            this.particles[i].sy += 0.1;
+            this.particles[i].alpha -= 0.02;
+          }
+          this.particles = this.particles.filter(p => p.alpha > 0);
+        }
+      }
+
+      explode() {
+        this.explosion = true;
+        sound.play();
+
+        for (let i = 0; i < 50; i++) {
+          const angle = (Math.PI * 2 / 50) * i;
+          const speed = Math.random() * 5 + 3;
+          this.particles.push({
+            x: this.x,
+            y: this.y,
+            sx: Math.cos(angle) * speed,
+            sy: Math.sin(angle) * speed,
+            alpha: 1,
+            color: this.color
+          });
+        }
+      }
+
+      draw() {
+        if (!this.explosion) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+
+        if (this.explosion) {
+          for (const particle of this.particles) {
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${hexToRgb(particle.color)}, ${particle.alpha})`;
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`: null;
+    }
+
+    const fireworks = [];
+
+    function animate() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (Math.random() < 0.05) {
+        fireworks.push(new Firework());
+      }
+
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+        fireworks[i].update();
+        fireworks[i].draw();
+        if (fireworks[i].particles.length === 0 && fireworks[i].explosion) {
+          fireworks.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    new Typed('#typed', {
+      strings: [
+        'Selamat Tahun Baru 2025! 🎉',
+        'Semoga Tahun Ini Membawa Kebahagiaan 😊',
+        'Waktunya Mewujudkan Mimpi ⭐',
+        'Tetap Semangat dan Optimis 💪',
+        'Mari Buat Cerita Baru 📖'
+      ],
+      typeSpeed: 50,
+      backSpeed: 30,
+      backDelay: 1500,
+      loop: true
+    });
+  </script>
+</body>
+</html>
